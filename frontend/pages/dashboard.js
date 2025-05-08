@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import axios from 'axios';
 import jwtDecode from 'jwt-decode/build/jwt-decode.cjs';  // Use specific import path
 import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
 import NotificationList from '../components/NotificationList';
+import api from '../utils/api';
 
 export default function Dashboard() {
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(true);
     const [yourTasks, setYourTasks] = useState([]);
     const [assignedTasks, setAssignedTasks] = useState([]);
     const [assignedToYouTasks, setAssignedToYouTasks] = useState([]);
@@ -28,18 +32,10 @@ export default function Dashboard() {
         }
 
         Promise.all([
-            axios.get('http://localhost:5000/api/tasks?category=your-tasks', {
-                headers: { Authorization: `Bearer ${token}` }
-            }),
-            axios.get('http://localhost:5000/api/tasks?category=assigned-tasks', {
-                headers: { Authorization: `Bearer ${token}` }
-            }),
-            axios.get('http://localhost:5000/api/tasks?category=assigned-to-you', {
-                headers: { Authorization: `Bearer ${token}` }
-            }),
-            axios.get('http://localhost:5000/api/tasks?category=overdue', {
-                headers: { Authorization: `Bearer ${token}` }
-            }),
+            api.get('/api/tasks?category=your-tasks'),
+            api.get('/api/tasks?category=assigned-tasks'),
+            api.get('/api/tasks?category=assigned-to-you'),
+            api.get('/api/tasks?category=overdue'),
         ]).then(([yourRes, assignedRes, assignedToYouRes, overdueRes]) => {
             setYourTasks(yourRes.data);
             setAssignedTasks(assignedRes.data);
@@ -49,23 +45,14 @@ export default function Dashboard() {
     };
 
     const fetchNotifications = () => {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-        const userId = user?._id;
-        if (!userId) return;
-        axios.get(`http://localhost:5000/api/notifications/${userId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
+        if (!user?._id) return;
+        api.get(`/api/notifications/${user._id}`)
             .then(res => setNotifications(res.data))
             .catch(err => console.error(err));
     };
 
     const fetchUsers = () => {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-        axios.get('http://localhost:5000/api/users', {
-            headers: { Authorization: `Bearer ${token}` }
-        })
+        api.get('/api/users')
             .then(res => setUsers(res.data))
             .catch(err => console.error(err));
     };
@@ -73,20 +60,23 @@ export default function Dashboard() {
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) {
-            window.location.href = '/login';
+            router.push('/login');
             return;
         }
-        axios.get('http://localhost:5000/api/auth/me', {
-            headers: { Authorization: `Bearer ${token}` }
-        }).then(res => {
-            const userData = res.data;
-            setUser({ _id: userData._id, username: userData.username, name: userData.username });
-        }).catch(err => {
-            console.error('Failed to fetch current user', err);
-            setUser(null);
-        });
-        fetchTasks();
-        fetchUsers();
+
+        // Verify token validity
+        api.get('/api/auth/me')
+            .then(res => {
+                setUser(res.data);
+                setIsLoading(false);
+                fetchTasks();
+                fetchUsers();
+            })
+            .catch(() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                router.push('/login');
+            });
     }, []);
 
     useEffect(() => {
@@ -98,10 +88,6 @@ export default function Dashboard() {
     }, [notifications]);
 
     const handleTaskSubmit = (taskData) => {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
-        console.log('User object:', user);
         if (!user || !user._id) {
             console.warn('User ID is missing, cannot set createdBy');
             return;
@@ -118,15 +104,8 @@ export default function Dashboard() {
             dueDate: taskData.dueDate
         };
 
-        console.log('Task data being sent:', preparedTaskData);
-
         if (editingTask) {
-            axios.put(`http://localhost:5000/api/tasks/${editingTask._id}`, preparedTaskData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            })
+            api.put(`/api/tasks/${editingTask._id}`, preparedTaskData)
                 .then(response => {
                     console.log('Update response:', response.data);
                     setEditingTask(null);
@@ -137,12 +116,7 @@ export default function Dashboard() {
                     alert('Failed to update task. Please try again.');
                 });
         } else {
-            axios.post('http://localhost:5000/api/tasks', preparedTaskData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            })
+            api.post('/api/tasks', preparedTaskData)
                 .then(response => {
                     console.log('Create response:', response.data);
                     setEditingTask(null);
@@ -166,13 +140,8 @@ export default function Dashboard() {
     };
 
     const handleDelete = async (taskId) => {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
         try {
-            await axios.delete(`http://localhost:5000/api/tasks/${taskId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/api/tasks/${taskId}`);
             fetchTasks(); // Refresh all task categories
         } catch (err) {
             console.error('Error deleting task:', err);
@@ -181,11 +150,7 @@ export default function Dashboard() {
     };
 
     const handleMarkNotificationRead = (notificationId) => {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-        axios.put(`http://localhost:5000/api/notifications/${notificationId}/read`, {}, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
+        api.put(`/api/notifications/${notificationId}/read`)
             .then(() => fetchNotifications())
             .catch(err => console.error(err));
     };
@@ -205,6 +170,10 @@ export default function Dashboard() {
         });
     };
     */
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="min-h-screen bg-black text-white">
