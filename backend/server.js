@@ -8,8 +8,8 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'https://team-task-management-app-production-0909.up.railway.app',
-    credentials: true
+    origin: process.env.CORS_ORIGIN,
+
 }));
 app.use(express.urlencoded({ extended: true }));
 
