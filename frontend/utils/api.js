@@ -2,7 +2,7 @@ import axios from 'axios';
 import Router from 'next/router';
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL?.trim() || 'http://localhost:5000',
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
     headers: {
         'Content-Type': 'application/json'
     }
