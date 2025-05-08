@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { useRouter } from 'next/router';
+import api from '../utils/api';
 
 export default function AuthForm({ isLogin, onAuthSuccess }) {
     const [email, setEmail] = useState('');
@@ -13,15 +13,15 @@ export default function AuthForm({ isLogin, onAuthSuccess }) {
         e.preventDefault();
         setError('');
         try {
-            const url = isLogin ? 'http://localhost:5000/api/auth/login' : 'http://localhost:5000/api/auth/register';
+            const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
             const payload = isLogin ? { email, password } : { email, username, password };
-            const response = await axios.post(url, payload);
+            const response = await api.post(endpoint, payload);
 
             if (response.data.token) {
                 localStorage.setItem('token', response.data.token);
-                axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+                localStorage.setItem('user', JSON.stringify(response.data.user));
                 onAuthSuccess(response.data.user);
-                router.push('/dashboard'); // Add explicit navigation
+                router.push('/dashboard');
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Authentication failed');
