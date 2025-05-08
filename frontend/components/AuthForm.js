@@ -13,17 +13,20 @@ export default function AuthForm({ isLogin, onAuthSuccess }) {
         e.preventDefault();
         setError('');
         try {
-            const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+            const endpoint = `/api/auth/${isLogin ? 'login' : 'register'}`;
             const payload = isLogin ? { email, password } : { email, username, password };
+
+            console.log('Submitting to:', endpoint); // For debugging
             const response = await api.post(endpoint, payload);
 
             if (response.data.token) {
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
-                onAuthSuccess(response.data.user);
+                onAuthSuccess?.(response.data.user);
                 router.push('/dashboard');
             }
         } catch (err) {
+            console.error('Auth Error:', err.response || err); // For debugging
             setError(err.response?.data?.message || 'Authentication failed');
         }
     };
