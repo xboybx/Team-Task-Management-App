@@ -1,14 +1,19 @@
 import axios from 'axios';
 import Router from 'next/router';
 
+const baseURL = process.env.NEXT_PUBLIC_API_URL;
+
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    baseURL: baseURL?.trim(),
     headers: {
         'Content-Type': 'application/json'
     }
 });
 
+console.log('API Base URL:', baseURL); // For debugging
+
 api.interceptors.request.use((config) => {
+    console.log('Request URL:', config.url); // For debugging
     const token = localStorage.getItem('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
