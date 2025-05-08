@@ -1,4 +1,4 @@
-front e # Team Task Management App
+ # Team Task Management App
 
 ## Overview
 This is a full-stack task management application with a React/Next.js frontend and a Node.js/Express backend. The app allows users to register, login, create and manage tasks, assign tasks to other users, and receive notifications about task assignments and updates.
