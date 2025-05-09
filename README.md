@@ -55,3 +55,6 @@ The app is designed for teams to manage their tasks collaboratively. Users can c
 ## Technologies Used
 - Frontend: React, Next.js, Tailwind CSS, Axios
 - Backend: Node.js, Express, MongoDB, Mongoose, JWT
+
+## APP Live Link
+(https://team-task-management-app-production-0909.up.railway.app/)

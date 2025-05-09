@@ -32,7 +32,10 @@ export default function AuthForm({ isLogin, onAuthSuccess }) {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="min-h-screen flex  flex-col gap-5 items-center justify-center bg-black">
+            <span className="bg-gradient-to-r from-gray-500 to-gray-800 bg-clip-text text-transparent  text-4xl font-mono font-extrabold transform hover:scale-110 transition-all duration-300">
+                Task Managment System
+            </span>
             <form onSubmit={handleSubmit} className="w-full max-w-md p-8 bg-zinc-900 rounded-xl shadow-2xl border border-zinc-800">
                 <h2 className="text-3xl font-bold text-center text-white mb-8">
                     {isLogin ? 'Welcome Back' : 'Create Account'}
