@@ -90,7 +90,7 @@ export default function Dashboard() {
 
     const handleTaskSubmit = (taskData) => {
         if (!user || !user._id) {
-            console.warn('User ID is missing, cannot set createdBy');
+            // console.warn('User ID is missing, cannot set createdBy');
             return;
         }
 
@@ -108,18 +108,18 @@ export default function Dashboard() {
         if (editingTask) {
             api.put(`/api/tasks/${editingTask._id}`, preparedTaskData)
                 .then(response => {
-                    console.log('Update response:', response.data);
+                    // console.log('Update response:', response.data);
                     setEditingTask(null);
                     fetchTasks();
                 })
                 .catch(err => {
-                    console.error('Error updating task:', err.response?.data || err);
+                    // console.error('Error updating task:', err.response?.data || err);
                     alert('Failed to update task. Please try again.');
                 });
         } else {
             api.post('/api/tasks', preparedTaskData)
                 .then(response => {
-                    console.log('Create response:', response.data);
+                    // console.log('Create response:', response.data);
                     setEditingTask(null);
                     fetchTasks();
                 })
@@ -131,7 +131,7 @@ export default function Dashboard() {
     };
 
     const handleEdit = (task) => {
-        console.log('Editing task:', task);
+        // console.log('Editing task:', task);
         setEditingTask({
             ...task,
             assignedTo: task.assignedTo?._id || task.assignedTo || '',

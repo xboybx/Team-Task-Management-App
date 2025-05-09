@@ -16,7 +16,7 @@ export default function AuthForm({ isLogin, onAuthSuccess }) {
             const endpoint = `/api/auth/${isLogin ? 'login' : 'register'}`;
             const payload = isLogin ? { email, password } : { email, username, password };
 
-            console.log('Submitting to:', endpoint); // For debugging
+            // console.log('Submitting to:', endpoint); // For debugging
             const response = await api.post(endpoint, payload);
 
             if (response.data.token) {
@@ -26,7 +26,7 @@ export default function AuthForm({ isLogin, onAuthSuccess }) {
                 router.push('/dashboard');
             }
         } catch (err) {
-            console.error('Auth Error:', err.response || err); // For debugging
+            // console.error('Auth Error:', err.response || err); // For debugging
             setError(err.response?.data?.message || 'Authentication failed');
         }
     };
