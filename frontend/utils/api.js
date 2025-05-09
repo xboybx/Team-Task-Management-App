@@ -1,10 +1,12 @@
 import axios from 'axios';
 import Router from 'next/router';
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL;
+const baseURL = process.env.NEXT_PUBLIC_API_URL?.trim();
+console.log('Raw API URL:', process.env.NEXT_PUBLIC_API_URL);
+console.log('Trimmed API URL:', baseURL);
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL?.trim(),
+    baseURL,
     headers: {
         'Content-Type': 'application/json'
     }
@@ -13,7 +15,7 @@ const api = axios.create({
 console.log('API Base URL:', baseURL); // For debugging
 
 api.interceptors.request.use((config) => {
-    console.log('Request URL:', config.url); // For debugging
+    console.log('Full request URL:', `${config.baseURL}${config.url}`);
     const token = localStorage.getItem('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
