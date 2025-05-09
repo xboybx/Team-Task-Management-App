@@ -3,6 +3,7 @@ const Task = require('../models/Task');
 const Notification = require('../models/Notification');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const auth = require('../middleware/auth');
 
 // Create a new task
 router.post('/', async (req, res) => {
@@ -162,13 +163,24 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a task by ID
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
     try {
-        const task = await Task.findByIdAndDelete(req.params.id);
-        if (!task) return res.status(404).json({ message: 'Task not found' });
-        res.json({ message: 'Task deleted' });
+        const task = await Task.findById(req.params.id);
+
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        // Optional: Check if user has permission to delete
+        if (task.createdBy.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized to delete this task' });
+        }
+
+        await Task.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Task deleted successfully' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error('Delete task error:', err);
+        res.status(500).json({ message: 'Error deleting task', error: err.message });
     }
 });
 

@@ -6,6 +6,7 @@ import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
 import NotificationList from '../components/NotificationList';
 import api from '../utils/api';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function Dashboard() {
     const router = useRouter();
@@ -141,11 +142,14 @@ export default function Dashboard() {
 
     const handleDelete = async (taskId) => {
         try {
-            await api.delete(`/api/tasks/${taskId}`);
-            fetchTasks(); // Refresh all task categories
+            const response = await api.delete(`/api/tasks/${taskId}`);
+            if (response.status === 200) {
+                fetchTasks(); // Refresh all task categories
+            }
         } catch (err) {
             console.error('Error deleting task:', err);
-            alert('Failed to delete task. Please try again.');
+            // Show error to user
+            alert(err.response?.data?.message || 'Failed to delete task');
         }
     };
 
@@ -172,7 +176,7 @@ export default function Dashboard() {
     */
 
     if (isLoading) {
-        return <div>Loading...</div>;
+        return <LoadingSpinner />;
     }
 
     return (

@@ -21,7 +21,6 @@ export default function Login() {
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
 
-            // Use Router instead of window.location
             router.push('/dashboard');
         } catch (error) {
             console.error('Login error:', error);

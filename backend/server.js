@@ -73,13 +73,10 @@ app.use((err, req, res, next) => {
 // Modified server startup
 const startServer = async () => {
     try {
-        await mongoose.connect(process.env.MONGODB_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
+        await mongoose.connect(process.env.MONGODB_URI);
         console.log('MongoDB connected');
 
-        app.listen(PORT, '0.0.0.0', () => {
+        app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });
     } catch (error) {

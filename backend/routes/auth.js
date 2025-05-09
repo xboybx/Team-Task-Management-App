@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const router = express.Router();
 
-// Add these helper functions at the top after the imports
+//  helper functions 
 const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -95,6 +95,8 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
+
+//get current user
 router.get('/me', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('-password');
