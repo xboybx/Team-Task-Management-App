@@ -2,15 +2,25 @@ const express = require('express');
 const Task = require('../models/Task');
 const Notification = require('../models/Notification');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
-
-// Apply auth middleware to all routes
-router.use(auth);
 
 // Create a new task
 router.post('/', async (req, res) => {
     try {
-        const userId = req.user.id; // Get userId from auth middleware
+        // Extract user ID from token to set assignedBy and createdBy
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({ message: 'Authorization header missing' });
+        }
+        const token = authHeader.split(' ')[1];
+        let userId;
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            userId = decoded.id;
+        } catch (err) {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
 
         if (req.body.assignedTo) {
             req.body.assignedBy = userId;
@@ -40,7 +50,6 @@ router.post('/', async (req, res) => {
 // Get all tasks (with optional filters and categories)
 router.get('/', async (req, res) => {
     try {
-        const userId = req.user.id; // Get userId from auth middleware
         const filters = {};
         if (req.query.status) filters.status = req.query.status;
         if (req.query.priority) filters.priority = req.query.priority;
@@ -50,6 +59,20 @@ router.get('/', async (req, res) => {
                 { title: { $regex: req.query.search, $options: 'i' } },
                 { description: { $regex: req.query.search, $options: 'i' } }
             ];
+        }
+
+        // Extract user ID from token
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({ message: 'Authorization header missing' });
+        }
+        const token = authHeader.split(' ')[1];
+        let userId;
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            userId = decoded.id;
+        } catch (err) {
+            return res.status(401).json({ message: 'Invalid token' });
         }
 
         const category = req.query.category;
@@ -104,11 +127,22 @@ router.get('/:id', async (req, res) => {
 // Update a task by ID
 router.put('/:id', async (req, res) => {
     try {
-        const userId = req.user.id; // Get userId from auth middleware
-
         // Prevent overwriting createdBy field on update
         const updateData = { ...req.body };
         delete updateData.createdBy;
+
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({ message: 'Authorization header missing' });
+        }
+        const token = authHeader.split(' ')[1];
+        let userId;
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            userId = decoded.id;
+        } catch (err) {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
 
         const task = await Task.findByIdAndUpdate(req.params.id, updateData, { new: true });
         if (!task) return res.status(404).json({ message: 'Task not found' });
@@ -129,16 +163,16 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a task by ID
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
     try {
-        const userId = req.user.id; // Get userId from auth middleware
         const task = await Task.findById(req.params.id);
 
         if (!task) {
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        if (task.createdBy.toString() !== userId) {
+        // Optional: Check if user has permission to delete
+        if (task.createdBy.toString() !== req.user.id) {
             return res.status(403).json({ message: 'Not authorized to delete this task' });
         }
 
